@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 
 namespace UnityStandardAssets.Vehicles.Car
@@ -21,7 +20,6 @@ namespace UnityStandardAssets.Vehicles.Car
         {
             s.UpdateValues();
             m_Car.Move(s.H, s.V, s.V, 0f);
-
         }
     }
 }
