@@ -14,7 +14,7 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 8
-  m_Fog: 1
+  m_Fog: 0
   m_FogColor: {r: 0.41392732, g: 0.59877515, b: 0.85294116, a: 1}
   m_FogMode: 1
   m_FogDensity: 0.003
@@ -9669,6 +9669,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameObject: {fileID: 1492099340755448, guid: 86c20d09a275bb84b9c49b20107a4a90, type: 2}
   gameObjectLifeSpan: 30
+  rotationX: -90
+  rotationY: 0
+  rotationZ: 90
 --- !u!114 &1700951454
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11106,7 +11109,7 @@ Transform:
   - {fileID: 1713081825}
   - {fileID: 1768258571}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1953529662
 GameObject:
@@ -11251,7 +11254,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4000013583430504, guid: 96664f82c8df0114a92fe864c83a9a48, type: 2}
       propertyPath: m_RootOrder
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 114000013506099906, guid: 96664f82c8df0114a92fe864c83a9a48,
         type: 2}
