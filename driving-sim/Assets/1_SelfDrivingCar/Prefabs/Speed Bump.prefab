@@ -20,9 +20,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4986950953162806}
   - component: {fileID: 33427409427289814}
-  - component: {fileID: 65273507663018206}
   - component: {fileID: 23966028067823720}
   - component: {fileID: 54061214628342908}
+  - component: {fileID: 64293935197916362}
   m_Layer: 0
   m_Name: Speed Bump
   m_TagString: Untagged
@@ -97,8 +97,8 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!65 &65273507663018206
-BoxCollider:
+--- !u!64 &64293935197916362
+MeshCollider:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
@@ -107,5 +107,7 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.01, y: 0.04, z: 0.0025}
-  m_Center: {x: 0, y: 0, z: 0.0012}
+  m_Convex: 1
+  m_InflateMesh: 0
+  m_SkinWidth: 0.01
+  m_Mesh: {fileID: 4300000, guid: 2307e5061590d1341b42215c045e684f, type: 3}
