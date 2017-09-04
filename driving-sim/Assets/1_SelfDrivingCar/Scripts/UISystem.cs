@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 public class UISystem : MonoSingleton<UISystem> {
 
     public CarController carController;
+    public GameObjectSpawner gameObjectSpawner;
     public string GoodCarStatusMessage;
     public string BadSCartatusMessage;
     public Text MPH_Text;
@@ -23,10 +24,11 @@ public class UISystem : MonoSingleton<UISystem> {
     private float topSpeed;
 	private bool saveRecording;
 
+    public InputField spawnDistanceInputField;
 
     // Use this for initialization
-    void Start() {
-		Debug.Log (isTraining);
+    void Start()
+    {
         topSpeed = carController.MaxSpeed;
         recording = false;
         RecordingPause.SetActive(false);
@@ -35,6 +37,7 @@ public class UISystem : MonoSingleton<UISystem> {
 		SaveStatus_Text.text = "";
 		SetAngleValue(0);
         SetMPHValue(0);
+
 		if (!isTraining) {
 			DriveStatus_Text.text = "Mode: Autonomous";
 			RecordDisabled.SetActive (true);
@@ -76,6 +79,12 @@ public class UISystem : MonoSingleton<UISystem> {
 			saveRecording = true;
 			carController.IsRecording = false;
         }
+    }
+
+    public void ToggleAsset(int index)
+    {
+        if (this.gameObjectSpawner == null) return;
+        this.gameObjectSpawner.ToggleSpawnableGameObjectEnabled(index);
     }
 	
     void UpdateCarValues()
