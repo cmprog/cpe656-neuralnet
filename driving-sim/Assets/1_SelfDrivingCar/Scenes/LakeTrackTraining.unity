@@ -8296,7 +8296,7 @@ GameObject:
   - component: {fileID: 1399767227}
   - component: {fileID: 1399767228}
   m_Layer: 5
-  m_Name: Toggle (Deformation)
+  m_Name: Toggle (Sewer Cap)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9665,9 +9665,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Deformation
-
-'
+  m_Text: Sewer Cap
 --- !u!222 &1596946581
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -10295,15 +10293,13 @@ MonoBehaviour:
   - gameObject: {fileID: 1492099340755448, guid: 86c20d09a275bb84b9c49b20107a4a90,
       type: 2}
     enabled: 1
-    rotationX: -90
-    rotationY: 0
-    rotationZ: 90
-  - gameObject: {fileID: 1782215833965082, guid: 75a0ffafa105447459737a7bb1a9573b,
+    rotation: {x: -90, y: 0, z: 90}
+    translation: {x: 0, y: 0, z: 0}
+  - gameObject: {fileID: 1403015181799628, guid: 580737847f1f327498d1c094545d1d24,
       type: 2}
     enabled: 1
-    rotationX: 0
-    rotationY: 0
-    rotationZ: 0
+    rotation: {x: -90, y: 0, z: 90}
+    translation: {x: 0, y: 0, z: 0}
   gameObjectLifeSpan: 30
 --- !u!114 &1700951454
 MonoBehaviour:

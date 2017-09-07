@@ -75,9 +75,8 @@ namespace UnityStandardAssets.Vehicles.Car
             public GameObject gameObject;
             public bool enabled;
 
-            public float rotationX;
-            public float rotationY;
-            public float rotationZ;
+            public Vector3 rotation;
+            public Vector3 translation;
 
             /// <summary>
             /// Creates a new <see cref="GameObject"/> with the position and rotation of the <paramref name="targetTransform"/>
@@ -89,9 +88,8 @@ namespace UnityStandardAssets.Vehicles.Car
 
                 // Some game objects need additional rotation for them to be oriented correctly,
                 // usually these rotations would be a multiple of 90.0 degrees
-                generatedGameObject.transform.Rotate(Vector3.right, this.rotationX, Space.Self);
-                generatedGameObject.transform.Rotate(Vector3.up, this.rotationY, Space.Self);
-                generatedGameObject.transform.Rotate(Vector3.forward, this.rotationZ, Space.Self);
+                generatedGameObject.transform.Rotate(this.rotation, Space.Self);
+                generatedGameObject.transform.Translate(this.translation);
 
                 return generatedGameObject;
             }
