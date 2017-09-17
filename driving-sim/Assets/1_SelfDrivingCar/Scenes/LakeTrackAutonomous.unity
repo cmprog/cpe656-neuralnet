@@ -2499,6 +2499,12 @@ BoxCollider:
 Transform:
   m_PrefabParentObject: {fileID: 400000, guid: c92bea14e5c4591408be760558da7b90, type: 3}
   m_PrefabInternal: {fileID: 348952300}
+--- !u!114 &353232684 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114000013506099906, guid: 96664f82c8df0114a92fe864c83a9a48,
+    type: 2}
+  m_PrefabInternal: {fileID: 1909783480}
+  m_Script: {fileID: 11500000, guid: 8956051acd809ee4e814d87c4cf2917a, type: 3}
 --- !u!1001 &358276824
 Prefab:
   m_ObjectHideFlags: 0
@@ -10463,6 +10469,11 @@ Prefab:
       propertyPath: NoDetectionMessage
       value: No Detection
       objectReference: {fileID: 0}
+    - target: {fileID: 114000013506099906, guid: 96664f82c8df0114a92fe864c83a9a48,
+        type: 2}
+      propertyPath: DetectStatus_Text
+      value: 
+      objectReference: {fileID: 15631939}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 96664f82c8df0114a92fe864c83a9a48, type: 2}
   m_IsPrefabParent: 0
@@ -10832,6 +10843,11 @@ Prefab:
       propertyPath: FrontFacingCamera
       value: 
       objectReference: {fileID: 1506256752}
+    - target: {fileID: 114000011334794896, guid: 16328d84059a4491da82863ec16eb6a1,
+        type: 2}
+      propertyPath: UISystem
+      value: 
+      objectReference: {fileID: 353232684}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 16328d84059a4491da82863ec16eb6a1, type: 2}
   m_IsPrefabParent: 0
