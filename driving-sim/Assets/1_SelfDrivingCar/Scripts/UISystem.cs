@@ -16,6 +16,7 @@ public class UISystem : MonoSingleton<UISystem> {
     public Text RecordStatus_Text;
 	public Text DriveStatus_Text;
 	public Text SaveStatus_Text;
+    public Text DetectStatus_Text;
     public GameObject RecordingPause; 
 	public GameObject RecordDisabled;
 	public bool isTraining = false;
@@ -23,6 +24,12 @@ public class UISystem : MonoSingleton<UISystem> {
     private bool recording;
     private float topSpeed;
 	private bool saveRecording;
+
+    public string DetectionMessage;
+    public string NoDetectionMessage;
+
+    public Color DetectionColor;
+    public Color NoDetectionColor;
 
     public InputField spawnDistanceInputField;
 
@@ -55,6 +62,20 @@ public class UISystem : MonoSingleton<UISystem> {
         MPH_Text.text = value.ToString("N2");
         //Do something with value for fill amounts
         MPH_Animation.fillAmount = value/topSpeed;
+    }
+
+    public void SetDetection(bool value)
+    {
+        if (value)
+        {
+            this.DetectStatus_Text.text = this.DetectionMessage;
+            this.DetectStatus_Text.color = Color.green;
+        }
+        else
+        {
+            this.DetectStatus_Text.text = this.NoDetectionMessage;
+            this.DetectStatus_Text.color = Color.red;
+        }
     }
 
     public void ToggleRecording()

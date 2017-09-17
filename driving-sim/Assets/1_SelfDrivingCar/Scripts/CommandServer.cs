@@ -10,6 +10,7 @@ public class CommandServer : MonoBehaviour
 {
 	public CarRemoteControl CarRemoteControl;
 	public Camera FrontFacingCamera;
+    public UISystem UISystem;
 	private SocketIOComponent _socket;
 	private CarController _carController;
 
@@ -46,7 +47,11 @@ public class CommandServer : MonoBehaviour
 		//    print(float.Parse(jsonObject.GetField("steering_angle").str));
 		CarRemoteControl.SteeringAngle = float.Parse(jsonObject.GetField("steering_angle").str);
 		CarRemoteControl.Acceleration = float.Parse(jsonObject.GetField("throttle").str);
-		EmitTelemetry(obj);
+        
+	    // Placeholder
+	    this.UISystem.SetDetection(this.CarRemoteControl.SteeringAngle >= 0.0f);
+
+        EmitTelemetry(obj);
 	}
 
 	void EmitTelemetry(SocketIOEvent obj)
