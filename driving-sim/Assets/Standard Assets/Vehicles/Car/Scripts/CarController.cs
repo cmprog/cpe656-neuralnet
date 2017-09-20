@@ -65,6 +65,7 @@ namespace UnityStandardAssets.Vehicles.Car
 		private bool isSaving;
 		private Vector3 saved_position;
 		private Quaternion saved_rotation;
+        private GameObjectSpawner goSpawner;
 
         public bool Skidding { get; private set; }
 
@@ -144,6 +145,8 @@ namespace UnityStandardAssets.Vehicles.Car
 
             m_Rigidbody = GetComponent<Rigidbody> ();
             m_CurrentTorque = m_FullTorqueOverAllWheels - (m_TractionControl * m_FullTorqueOverAllWheels);
+
+            goSpawner = GetComponent<GameObjectSpawner> ();
         }
 
         private void GearChanging ()
@@ -404,6 +407,10 @@ namespace UnityStandardAssets.Vehicles.Car
             }
         }
 
+        private bool IsObjectOnScreen(Vector3 position)
+        {
+            return position.z > 0 && position.x < 1 && position.x > 0 && position.y < 1 && position.y > 0;
+        }
 
 		//Changed the WriteSamplesToDisk to a IEnumerator method that plays back recording along with percent status from UISystem script 
 		//instead of showing frozen screen until all data is recorded
@@ -423,7 +430,21 @@ namespace UnityStandardAssets.Vehicles.Car
 				string leftPath = WriteImage (LeftCamera, "left", sample.timeStamp);
 				string rightPath = WriteImage (RightCamera, "right", sample.timeStamp);
 
-				string row = string.Format ("{0},{1},{2},{3},{4},{5},{6}\n", centerPath, leftPath, rightPath, sample.steeringAngle, sample.throttle, sample.brake, sample.speed);
+				string row = string.Format ("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n", 
+                    leftPath,                                   //left image
+                    IsObjectOnScreen(sample.leftPosition),      //left detect
+                    sample.leftPosition.x,                      //left x
+                    sample.leftPosition.y,                      //left y
+                    centerPath,                                 //center image
+                    IsObjectOnScreen(sample.centerPosition),    //center detect
+                    sample.centerPosition.x,                    //center x
+                    sample.centerPosition.y,                    //center y
+                    rightPath,                                  //right image
+                    IsObjectOnScreen(sample.rightPosition),     //right detect
+                    sample.rightPosition.x,                     //right x
+                    sample.rightPosition.y                      //right y
+                );
+
 				File.AppendAllText (Path.Combine (m_saveLocation, CSVFileName), row);
 			}
 			if (carSamples.Count > 0) {
@@ -464,20 +485,22 @@ namespace UnityStandardAssets.Vehicles.Car
 
             if (m_saveLocation != "")
             {
-                CarSample sample = new CarSample();
+                if(goSpawner.currentSpawnedGameObject != null)
+                {
+                    CarSample sample = new CarSample();
 
-                sample.timeStamp = System.DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss_fff");
-                sample.steeringAngle = m_SteerAngle / m_MaximumSteerAngle;
-                sample.throttle = AccelInput;
-                sample.brake = BrakeInput;
-                sample.speed = CurrentSpeed;
-                sample.position = transform.position;
-                sample.rotation = transform.rotation;
+                    sample.timeStamp = System.DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss_fff");
+                    sample.position = transform.position;
+                    sample.rotation = transform.rotation;
+                    sample.leftPosition = LeftCamera.WorldToViewportPoint(goSpawner.currentSpawnedGameObject.transform.position);
+                    sample.centerPosition = CenterCamera.WorldToViewportPoint(goSpawner.currentSpawnedGameObject.transform.position);
+                    sample.rightPosition = RightCamera.WorldToViewportPoint(goSpawner.currentSpawnedGameObject.transform.position);
 
-                carSamples.Enqueue(sample);
+                    carSamples.Enqueue(sample);
 
-                sample = null;
-                //may or may not be needed
+                    sample = null;
+                    //may or may not be needed
+                }
             }
 
             // Only reschedule if the button hasn't toggled
@@ -517,11 +540,10 @@ namespace UnityStandardAssets.Vehicles.Car
     {
         public Quaternion rotation;
         public Vector3 position;
-        public float steeringAngle;
-        public float throttle;
-        public float brake;
-        public float speed;
-        public string timeStamp;
+        public string timeStamp; 
+        public Vector3 leftPosition;
+        public Vector3 centerPosition;
+        public Vector3 rightPosition;
     }
 
 }

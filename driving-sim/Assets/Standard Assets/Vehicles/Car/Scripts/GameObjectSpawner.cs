@@ -14,6 +14,7 @@ namespace UnityStandardAssets.Vehicles.Car
         private GameObject spawnParent;
 
         public SpawnableGameObject[] spawnableGameObjects;
+        public GameObject currentSpawnedGameObject;
         private List<SpawnableGameObject> candidateSpawnableGameObjectList;
 
         public float gameObjectLifeSpan;
@@ -38,9 +39,9 @@ namespace UnityStandardAssets.Vehicles.Car
             if (spawnableGameObject == null) return;
 
             var targetTransform = this.progressTracker.target;
-            var generatedGameObject = spawnableGameObject.Create(targetTransform, this.spawnParent.transform);
+            currentSpawnedGameObject = spawnableGameObject.Create(targetTransform, this.spawnParent.transform);
             
-            Destroy(generatedGameObject.gameObject, this.gameObjectLifeSpan);
+            Destroy(currentSpawnedGameObject.gameObject, this.gameObjectLifeSpan);
         }
 
         public void ToggleSpawnableGameObjectEnabled(int index)
