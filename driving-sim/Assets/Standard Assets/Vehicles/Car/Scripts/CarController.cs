@@ -430,19 +430,25 @@ namespace UnityStandardAssets.Vehicles.Car
 				string leftPath = WriteImage (LeftCamera, "left", sample.timeStamp);
 				string rightPath = WriteImage (RightCamera, "right", sample.timeStamp);
 
-				string row = string.Format ("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n", 
+				string row = string.Format ("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},\n", 
                     leftPath,                                   //left image
                     IsObjectOnScreen(sample.leftPosition),      //left detect
                     sample.leftPosition.x,                      //left x
                     sample.leftPosition.y,                      //left y
+                    0,                                          //left width
+                    0,                                          //left height
                     centerPath,                                 //center image
                     IsObjectOnScreen(sample.centerPosition),    //center detect
                     sample.centerPosition.x,                    //center x
                     sample.centerPosition.y,                    //center y
+                    0,                                          //center width
+                    0,                                          //center height
                     rightPath,                                  //right image
                     IsObjectOnScreen(sample.rightPosition),     //right detect
                     sample.rightPosition.x,                     //right x
-                    sample.rightPosition.y                      //right y
+                    sample.rightPosition.y,                     //right y
+                    0,                                          //right width
+                    0                                           //right height               
                 );
 
 				File.AppendAllText (Path.Combine (m_saveLocation, CSVFileName), row);
