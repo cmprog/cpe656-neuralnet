@@ -19,12 +19,13 @@ public class CommandServer : MonoBehaviour
 	{
 		_socket = GameObject.Find("SocketIO").GetComponent<SocketIOComponent>();
 		_socket.On("open", OnOpen);
-		_socket.On("steer", OnSteer);
+	    _socket.On("detect", OnDetect);
+	    _socket.On("track", OnTrack);
 		_socket.On("manual", onManual);
 		_carController = CarRemoteControl.GetComponent<CarController>();
 	}
 
-	// Update is called once per frame
+    // Update is called once per frame
 	void Update()
 	{
 	}
@@ -39,61 +40,65 @@ public class CommandServer : MonoBehaviour
 	void onManual(SocketIOEvent obj)
 	{
 		EmitTelemetry (obj);
-	}
+    }
+    
+    private void OnDetect(SocketIOEvent obj)
+    {
+        var jsonObject = obj.data;
 
-	void OnSteer(SocketIOEvent obj)
-	{
-		JSONObject jsonObject = obj.data;
-		//    print(float.Parse(jsonObject.GetField("steering_angle").str));
-		CarRemoteControl.SteeringAngle = float.Parse(jsonObject.GetField("steering_angle").str);
-		CarRemoteControl.Acceleration = float.Parse(jsonObject.GetField("throttle").str);
-        
-	    // Placeholder
-	    this.UISystem.SetDetection(this.CarRemoteControl.SteeringAngle >= 0.0f);
+        const string lcHasDetectionFieldKey = "hasDetection";
+
+        Debug.LogFormat("OnDetect: {0}", obj);
+
+        var hasDetectionJsonField = jsonObject.GetField(lcHasDetectionFieldKey);
+        if (hasDetectionJsonField == null)
+        {
+            Debug.LogWarning(string.Format(
+                "Expecting JSON field named \"{0}\" but field was not found.", 
+                lcHasDetectionFieldKey));
+        }
+        else if (!hasDetectionJsonField.IsBool)
+        {
+            Debug.LogWarning(string.Format(
+                "Expecting JSON field named \"{0}\" to be a boolean but found a {1}.",
+                lcHasDetectionFieldKey, hasDetectionJsonField.type));
+        }
+        else
+        {
+            var hasDetection = hasDetectionJsonField.b;
+            this.UISystem.SetDetection(hasDetection);
+        }
 
         EmitTelemetry(obj);
-	}
+    }
+    
+    private void OnTrack(SocketIOEvent obj)
+    {
+        // Currently this method stub is a plceholder for once we get tracking working
+        Debug.LogFormat("OnTrack: {0}", obj);
+        EmitTelemetry(obj);
+    }
 
 	void EmitTelemetry(SocketIOEvent obj)
 	{
 		UnityMainThreadDispatcher.Instance().Enqueue(() =>
 		{
 			print("Attempting to Send...");
-			// send only if it's not being manually driven
-			if ((Input.GetKey(KeyCode.W)) || (Input.GetKey(KeyCode.S))) {
-				_socket.Emit("telemetry", new JSONObject());
-			}
-			else {
-				// Collect Data from the Car
-				Dictionary<string, string> data = new Dictionary<string, string>();
-				data["steering_angle"] = _carController.CurrentSteerAngle.ToString("N4");
-				data["throttle"] = _carController.AccelInput.ToString("N4");
-				data["speed"] = _carController.CurrentSpeed.ToString("N4");
-				data["image"] = Convert.ToBase64String(CameraHelper.CaptureFrame(FrontFacingCamera));
-				_socket.Emit("telemetry", new JSONObject(data));
-			}
+		    var telemetryData = this.CreateTelemetryData();
+		    this._socket.Emit("telemetry", telemetryData);
 		});
-
-		//    UnityMainThreadDispatcher.Instance().Enqueue(() =>
-		//    {
-		//      	
-		//      
-		//
-		//		// send only if it's not being manually driven
-		//		if ((Input.GetKey(KeyCode.W)) || (Input.GetKey(KeyCode.S))) {
-		//			_socket.Emit("telemetry", new JSONObject());
-		//		}
-		//		else {
-		//			// Collect Data from the Car
-		//			Dictionary<string, string> data = new Dictionary<string, string>();
-		//			data["steering_angle"] = _carController.CurrentSteerAngle.ToString("N4");
-		//			data["throttle"] = _carController.AccelInput.ToString("N4");
-		//			data["speed"] = _carController.CurrentSpeed.ToString("N4");
-		//			data["image"] = Convert.ToBase64String(CameraHelper.CaptureFrame(FrontFacingCamera));
-		//			_socket.Emit("telemetry", new JSONObject(data));
-		//		}
-		//      
-		////      
-		//    });
 	}
+
+    private JSONObject CreateTelemetryData()
+    {
+        // If manually steering is detected, then we don't send any meaningful data
+        if ((Input.GetKey(KeyCode.W)) || (Input.GetKey(KeyCode.S)))
+        {
+            return new JSONObject();
+        }
+
+        var data = new Dictionary<string, string>();
+        data["image"] = Convert.ToBase64String(CameraHelper.CaptureFrame(FrontFacingCamera));
+        return new JSONObject(data);
+    }
 }
