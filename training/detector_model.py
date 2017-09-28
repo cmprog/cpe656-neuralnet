@@ -1,10 +1,10 @@
 import pandas as pd # data analysis toolkit - create, read, update, delete datasets
 import numpy as np #matrix math
-from sklearn.model_selection import train_test_split #to split out training and testing data 
+from sklearn.model_selection import train_test_split #to split out training and testing data
 #keras is a high level wrapper on top of tensorflow (machine learning library)
 #The Sequential container is a linear stack of layers
 from keras.models import Sequential
-#popular optimization strategy that uses gradient descent 
+#popular optimization strategy that uses gradient descent
 from keras.optimizers import Adam
 #to save our model periodically as checkpoints for loading later
 from keras.callbacks import ModelCheckpoint
@@ -17,7 +17,7 @@ import argparse
 #for reading files
 import os
 
-#for debugging, allows for reproducible (deterministic) results 
+#for debugging, allows for reproducible (deterministic) results
 np.random.seed(0)
 
 
@@ -26,19 +26,30 @@ def load_data(args):
     Load training data and split it into training and validation set
     """
     #reads CSV file into a single dataframe variable
-    data_df = pd.read_csv(os.path.join(os.getcwd(), args.data_dir, 'driving_log.csv'), names=['center', 'left', 'right', 'steering', 'throttle', 'reverse', 'speed', 'object_detection', 'label', 'location'])
+    data_df = pd.read_csv(os.path.join(os.getcwd(), args.data_dir, \
+        'driving_log.csv'), names=[\
+        'center', 'c_detect', 'c_x', 'c_y', 'c_width', 'c_height', \
+        'left', 'l_detect', 'l_x', 'l_y', 'l_width', 'l_height', \
+        'right', 'r_detect', 'r_x', 'r_y', 'r_width', 'r_height'])
 
     #yay dataframes, we can select rows and columns by their names
     #we'll store the camera images as our input data
-    X = data_df[['center', 'left', 'right']].values
+    x_center = data_df['center']
+    x_left = data_df['left']
+    x_right = data_df['right']
+    x = pd.concat([x_center, x_left, x_right]).values
+
     #and our steering commands as our output data
-    y = data_df['object_detection'].values
+    y_center = data_df['c_detect']
+    y_left = data_df['l_detect']
+    y_right = data_df['r_detect']
+    y = pd.concat([y_center, y_left, y_right]).values
 
     #now we can split the data into a training (80), testing(20), and validation set
     #thanks scikit learn
-    X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=args.test_size, random_state=0)
+    x_train, x_valid, y_train, y_valid = train_test_split(x, y, test_size=args.test_size, random_state=0)
 
-    return X_train, X_valid, y_train, y_valid
+    return x_train, x_valid, y_train, y_valid
 
 
 def build_model(args):
@@ -59,7 +70,7 @@ def build_model(args):
     # the convolution layers are meant to handle feature engineering
     the fully connected layer for predicting the steering angle.
     dropout avoids overfitting
-    ELU(Exponential linear unit) function takes care of the Vanishing gradient problem. 
+    ELU(Exponential linear unit) function takes care of the Vanishing gradient problem.
     """
     model = Sequential()
     model.add(Lambda(lambda x: x/127.5-1.0, input_shape=INPUT_SHAPE))
@@ -79,15 +90,15 @@ def build_model(args):
     return model
 
 
-def train_model(model, args, X_train, X_valid, y_train, y_valid):
+def train_model(model, args, x_train, x_valid, y_train, y_valid):
     """
     Train the model
     """
     #Saves the model after every epoch.
-    #quantity to monitor, verbosity i.e logging mode (0 or 1), 
+    #quantity to monitor, verbosity i.e logging mode (0 or 1),
     #if save_best_only is true the latest best model according to the quantity monitored will not be overwritten.
     #mode: one of {auto, min, max}. If save_best_only=True, the decision to overwrite the current save file is
-    # made based on either the maximization or the minimization of the monitored quantity. For val_acc, 
+    # made based on either the maximization or the minimization of the monitored quantity. For val_acc,
     #this should be max, for val_loss this should be min, etc. In auto mode, the direction is automatically
     # inferred from the name of the monitored quantity.
     checkpoint = ModelCheckpoint('model-{epoch:03d}.h5',
@@ -106,16 +117,19 @@ def train_model(model, args, X_train, X_valid, y_train, y_valid):
 
     #Fits the model on data generated batch-by-batch by a Python generator.
 
-    #The generator is run in parallel to the model, for efficiency. 
-    #For instance, this allows you to do real-time data augmentation on images on CPU in 
+    #The generator is run in parallel to the model, for efficiency.
+    #For instance, this allows you to do real-time data augmentation on images on CPU in
     #parallel to training your model on GPU.
     #so we reshape our data into their appropriate batches and train our model simulatenously
-    model.fit_generator(batch_generator(args.data_dir, X_train, y_train, args.batch_size, True),
+    t_data = batch_generator("", x_train, y_train, args.batch_size, True, args.is_unix)
+    print(t_data)
+    v_data = batch_generator("", x_valid, y_valid, args.batch_size, True, args.is_unix)
+    model.fit_generator(t_data,
                         args.samples_per_epoch,
                         args.nb_epoch,
                         max_q_size=1,
-                        validation_data=batch_generator(args.data_dir, X_valid, y_valid, args.batch_size, False),
-                        nb_val_samples=len(X_valid),
+                        validation_data=v_data,
+                        nb_val_samples=len(x_valid),
                         callbacks=[checkpoint],
                         verbose=1)
 
@@ -141,6 +155,7 @@ def main():
     parser.add_argument('-b', help='batch size',            dest='batch_size',        type=int,   default=40)
     parser.add_argument('-o', help='save best models only', dest='save_best_only',    type=s2b,   default='true')
     parser.add_argument('-l', help='learning rate',         dest='learning_rate',     type=float, default=1.0e-4)
+    parser.add_argument('-u', help='unix file name',        dest='is_unix',           type=s2b,   default='false')
     args = parser.parse_args()
 
     #print parameters
@@ -155,10 +170,9 @@ def main():
     data = load_data(args)
     #build model
     model = build_model(args)
-    #train model on data, it saves as model.h5 
+    #train model on data, it saves as model.h5
     train_model(model, args, *data)
 
 
 if __name__ == '__main__':
     main()
-

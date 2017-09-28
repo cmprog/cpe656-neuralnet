@@ -7,6 +7,14 @@ import matplotlib.image as mpimg
 IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS = 160, 320, 3
 INPUT_SHAPE = (IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS)
 
+def flip_slashes(image_file):
+    """
+    changes slashes from windows to unix
+    """
+    image_file = image_file.replace(".\\","").replace("\\", "/")
+    return image_file
+
+
 
 def load_image(data_dir, image_file):
     """
@@ -93,11 +101,11 @@ def random_shadow(image):
     xm, ym = np.mgrid[0:IMAGE_HEIGHT, 0:IMAGE_WIDTH]
 
     # mathematically speaking, we want to set 1 below the line and zero otherwise
-    # Our coordinate is up side down.  So, the above the line: 
+    # Our coordinate is up side down.  So, the above the line:
     # (ym-y1)/(xm-x1) > (y2-y1)/(x2-x1)
     # as x2 == x1 causes zero-division problem, we'll write it in the below form:
     # (ym-y1)*(x2-x1) - (y2-y1)*(xm-x1) > 0
-    mask = np.zeros_like(image[:, :, 1])    
+    mask = np.zeros_like(image[:, :, 1])
     mask[(ym - y1) * (x2 - x1) - (y2 - y1) * (xm - x1) > 0] = 1
 
     # choose which side should have shadow and adjust saturation
@@ -134,27 +142,31 @@ def augument(data_dir, center, left, right, steering_angle, range_x=100, range_y
     return image, steering_angle
 
 
-def batch_generator(data_dir, image_paths, steering_angles, batch_size, is_training):
+def batch_generator(data_dir, image_paths, detects, batch_size, is_training, is_unix):
     """
     Generate training image give image paths and associated steering angles
     """
+    batch_size = len(image_paths)
     images = np.empty([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS])
     steers = np.empty(batch_size)
     while True:
         i = 0
         for index in np.random.permutation(image_paths.shape[0]):
-            center, left, right = image_paths[index]
-            steering_angle = steering_angles[index]
-            # argumentation
-            if is_training and np.random.rand() < 0.6:
-                image, steering_angle = augument(data_dir, center, left, right, steering_angle)
+            if is_unix:
+                image_path = flip_slashes(image_paths[index])
             else:
-                image = load_image(data_dir, center) 
+                image_path = image_paths[index]
+            detect = detects[index]
+            # argumentation.
+            # ToDo: add back in augmentation and mutation
+            # if is_training and np.random.rand() < 0.6:
+            #     image, detect = augument(data_dir, image_path, detect)
+            # else:
+            image = load_image(data_dir, image_path)
             # add the image and steering angle to the batch
             images[i] = preprocess(image)
-            steers[i] = steering_angle
+            detects[i] = detect
             i += 1
             if i == batch_size:
                 break
-        yield images, steers
-
+        yield images, detects
