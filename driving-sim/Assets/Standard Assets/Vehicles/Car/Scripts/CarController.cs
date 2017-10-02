@@ -65,7 +65,10 @@ namespace UnityStandardAssets.Vehicles.Car
 		private bool isSaving;
 		private Vector3 saved_position;
 		private Quaternion saved_rotation;
+
         private GameObjectSpawner goSpawner;
+        private GameObject latestSpawnedGameObject;
+        private bool isLatestSpawnedGameObjectRecorded;
 
         public bool Skidding { get; private set; }
 
@@ -146,7 +149,14 @@ namespace UnityStandardAssets.Vehicles.Car
             m_Rigidbody = GetComponent<Rigidbody> ();
             m_CurrentTorque = m_FullTorqueOverAllWheels - (m_TractionControl * m_FullTorqueOverAllWheels);
 
-            goSpawner = GetComponent<GameObjectSpawner> ();
+            goSpawner = GetComponent<GameObjectSpawner>();
+            this.goSpawner.GameObjectSpawned += this.GameObjectSpawner_GameObjectSpawned;
+        }
+
+        private void GameObjectSpawner_GameObjectSpawned(object sender, GameObjectEventArgs e)
+        {
+            this.latestSpawnedGameObject = e.GameObject;
+            this.isLatestSpawnedGameObjectRecorded = false;
         }
 
         private void GearChanging ()
@@ -421,6 +431,14 @@ namespace UnityStandardAssets.Vehicles.Car
 				//pull off a sample from the que
 				CarSample sample = carSamples.Dequeue();
 
+			    if (sample.spawnedObject != null)
+			    {
+			        sample.spawnedObject.SetActive(true);
+
+			        var deactivateBehavior = sample.spawnedObject.AddComponent<DeactivatorBeavior>();
+			        deactivateBehavior.delaySeconds = 30;
+			    }
+
 				//pysically moving the car to get the right camera position
 				transform.position = sample.position;
 				transform.rotation = sample.rotation;
@@ -491,21 +509,24 @@ namespace UnityStandardAssets.Vehicles.Car
 
             if (m_saveLocation != "")
             {
-                if(goSpawner.currentSpawnedGameObject != null)
+                if (this.latestSpawnedGameObject != null)
                 {
-                    CarSample sample = new CarSample();
+                    var sample = new CarSample();
+
+                    if (!this.isLatestSpawnedGameObjectRecorded)
+                    {
+                        sample.spawnedObject = this.latestSpawnedGameObject;
+                        this.isLatestSpawnedGameObjectRecorded = true;
+                    }
 
                     sample.timeStamp = System.DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss_fff");
                     sample.position = transform.position;
                     sample.rotation = transform.rotation;
-                    sample.leftPosition = LeftCamera.WorldToViewportPoint(goSpawner.currentSpawnedGameObject.transform.position);
-                    sample.centerPosition = CenterCamera.WorldToViewportPoint(goSpawner.currentSpawnedGameObject.transform.position);
-                    sample.rightPosition = RightCamera.WorldToViewportPoint(goSpawner.currentSpawnedGameObject.transform.position);
+                    sample.leftPosition = LeftCamera.WorldToViewportPoint(this.latestSpawnedGameObject.transform.position);
+                    sample.centerPosition = CenterCamera.WorldToViewportPoint(this.latestSpawnedGameObject.transform.position);
+                    sample.rightPosition = RightCamera.WorldToViewportPoint(this.latestSpawnedGameObject.transform.position);
 
                     carSamples.Enqueue(sample);
-
-                    sample = null;
-                    //may or may not be needed
                 }
             }
 
@@ -550,6 +571,7 @@ namespace UnityStandardAssets.Vehicles.Car
         public Vector3 leftPosition;
         public Vector3 centerPosition;
         public Vector3 rightPosition;
-    }
 
+        public GameObject spawnedObject;
+    }
 }
