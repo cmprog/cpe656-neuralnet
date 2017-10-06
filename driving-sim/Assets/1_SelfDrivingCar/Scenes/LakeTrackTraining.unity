@@ -1962,7 +1962,7 @@ Transform:
   - {fileID: 713276126}
   - {fileID: 192738147}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &281729019
 Prefab:
@@ -10695,6 +10695,38 @@ MonoBehaviour:
         lockXYRatio: 0
         lockXZRatio: 0
         lockYZRatio: 0
+    - gameObject: {fileID: 1872467406849192, guid: 379fe9bbdfaa06f48915e8e5e5601cc3,
+        type: 2}
+      rotation: {x: -90, y: -90, z: 0}
+      translation: {x: 0, y: 0, z: 0}
+      randomRotation:
+        enabled: 1
+        x:
+          min: 0
+          max: 0
+        y:
+          min: 0
+          max: 0
+        z:
+          min: 0
+          max: 360
+        lockXYRatio: 0
+        lockXZRatio: 0
+        lockYZRatio: 0
+      randomScale:
+        enabled: 0
+        x:
+          min: 0
+          max: 0
+        y:
+          min: 0
+          max: 0
+        z:
+          min: 0
+          max: 0
+        lockXYRatio: 0
+        lockXZRatio: 0
+        lockYZRatio: 0
   gameObjectLifeSpan: 30
 --- !u!114 &1700951454
 MonoBehaviour:
@@ -12347,7 +12379,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4000013583430504, guid: 96664f82c8df0114a92fe864c83a9a48, type: 2}
       propertyPath: m_RootOrder
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 114000013506099906, guid: 96664f82c8df0114a92fe864c83a9a48,
         type: 2}
