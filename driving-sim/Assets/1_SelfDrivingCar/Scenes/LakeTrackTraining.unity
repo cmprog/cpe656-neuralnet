@@ -10695,6 +10695,38 @@ MonoBehaviour:
         lockXYRatio: 0
         lockXZRatio: 0
         lockYZRatio: 0
+    - gameObject: {fileID: 1086929930144078, guid: 671323201a2ec9a4f8923928a687f1b1,
+        type: 2}
+      rotation: {x: -90, y: -90, z: 0}
+      translation: {x: 0, y: 0, z: 0}
+      randomRotation:
+        enabled: 1
+        x:
+          min: 0
+          max: 0
+        y:
+          min: 0
+          max: 0
+        z:
+          min: 0
+          max: 360
+        lockXYRatio: 0
+        lockXZRatio: 0
+        lockYZRatio: 0
+      randomScale:
+        enabled: 0
+        x:
+          min: 0
+          max: 0
+        y:
+          min: 0
+          max: 0
+        z:
+          min: 0
+          max: 0
+        lockXYRatio: 0
+        lockXZRatio: 0
+        lockYZRatio: 0
     - gameObject: {fileID: 1872467406849192, guid: 379fe9bbdfaa06f48915e8e5e5601cc3,
         type: 2}
       rotation: {x: -90, y: -90, z: 0}
