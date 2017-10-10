@@ -122,7 +122,6 @@ def train_model(model, args, x_train, x_valid, y_train, y_valid):
     #parallel to training your model on GPU.
     #so we reshape our data into their appropriate batches and train our model simulatenously
     t_data = batch_generator("", x_train, y_train, args.batch_size, True, args.is_unix)
-    print(t_data)
     v_data = batch_generator("", x_valid, y_valid, args.batch_size, True, args.is_unix)
     model.fit_generator(t_data,
                         args.samples_per_epoch,

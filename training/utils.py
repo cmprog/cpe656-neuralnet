@@ -146,7 +146,7 @@ def batch_generator(data_dir, image_paths, detects, batch_size, is_training, is_
     """
     Generate training image give image paths and associated steering angles
     """
-    batch_size = len(image_paths)
+    # batch_size = len(image_paths)
     images = np.empty([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS])
     steers = np.empty(batch_size)
     while True:
@@ -169,4 +169,4 @@ def batch_generator(data_dir, image_paths, detects, batch_size, is_training, is_
             i += 1
             if i == batch_size:
                 break
-        yield images, detects
+        yield images, detects[:batch_size]
