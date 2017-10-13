@@ -23,15 +23,8 @@ namespace UnityStandardAssets.Vehicles.Car
 
         private void FixedUpdate()
         {
-            // If holding down W or S control the car manually
-            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S))
-            {
-                s.UpdateValues();
-                m_Car.Move(s.H, s.V, s.V, 0f);
-            } else
-            {
-				m_Car.Move(SteeringAngle, Acceleration, Acceleration, 0f);
-            }
+            s.UpdateValues();
+            m_Car.Move(s.H, s.V, s.V, 0f);
         }
     }
 }
