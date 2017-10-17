@@ -453,20 +453,20 @@ namespace UnityStandardAssets.Vehicles.Car
                     IsObjectOnScreen(sample.leftPosition),      //left detect
                     sample.leftPosition.x,                      //left x
                     sample.leftPosition.y,                      //left y
-                    0,                                          //left width
-                    0,                                          //left height
+                    sample.leftWidth,                           //left width
+                    sample.leftHeight,                          //left height
                     centerPath,                                 //center image
                     IsObjectOnScreen(sample.centerPosition),    //center detect
                     sample.centerPosition.x,                    //center x
                     sample.centerPosition.y,                    //center y
-                    0,                                          //center width
-                    0,                                          //center height
+                    sample.centerWidth,                         //center width
+                    sample.centerHeight,                        //center height
                     rightPath,                                  //right image
                     IsObjectOnScreen(sample.rightPosition),     //right detect
                     sample.rightPosition.x,                     //right x
                     sample.rightPosition.y,                     //right y
-                    0,                                          //right width
-                    0                                           //right height               
+                    sample.rightWidth,                          //right width
+                    sample.rightHeight                          //right height               
                 );
 
 				File.AppendAllText (Path.Combine (m_saveLocation, CSVFileName), row);
@@ -500,6 +500,69 @@ namespace UnityStandardAssets.Vehicles.Car
 			return isSaving;
 		}
 
+        private List<Vector3> WorldToScreenPoints(Camera camera, List<Vector3> worldPoints)
+        {
+            List<Vector3> screenPoints = new List<Vector3>();
+
+            foreach (Vector3 worldPoint in worldPoints)
+            {
+                Vector3 screenPoint = camera.WorldToScreenPoint(worldPoint);
+                screenPoint.y = (float)Screen.height - screenPoint.y;
+                screenPoints.Add(screenPoint);
+            }
+
+            return screenPoints;
+        }
+
+        private Rect GetBoundingRect(Vector3 min, Vector3 max)
+        {
+            if (min.x < 0) min.x = 0;
+            if (min.y < 0) min.y = 0;
+            if (max.x > Screen.width) max.x = Screen.width;
+            if (max.y > Screen.height) max.y = Screen.height;
+
+            return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+        }
+
+        private List<Vector3> GetVerticiesFromMesh(GameObject gameObject)
+        {
+            Mesh mesh = gameObject.GetComponent<MeshFilter>().mesh;
+            Vector3[] vertices = mesh.vertices;
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                vertices[i] = gameObject.transform.TransformPoint(vertices[i]);
+            }
+
+            return new List<Vector3>(vertices);
+        }
+
+        private void getWidthAndHeightInViewPort(GameObject gameObject, Camera camera, out float width, out float height)
+        {
+            List<Vector3> screenPoints = WorldToScreenPoints(camera, GetVerticiesFromMesh(gameObject));
+
+            //Calculate the min and max positions
+            Vector3 min = screenPoints[0];
+            Vector3 max = screenPoints[0];
+            foreach (Vector3 screenPoint in screenPoints)
+            {
+                min = Vector3.Min(min, screenPoint);
+                max = Vector3.Max(max, screenPoint);
+            }
+
+            //Construct a rect of the min and max positions
+            Rect rect = GetBoundingRect(min, max);
+
+            if (min.z > 0)
+            {
+                width = rect.width;
+                height = rect.height;
+            }
+            else
+            {
+                width = 0;
+                height = 0;
+            }
+        }
 
         public IEnumerator Sample()
         {
@@ -522,9 +585,15 @@ namespace UnityStandardAssets.Vehicles.Car
                     sample.timeStamp = System.DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss_fff");
                     sample.position = transform.position;
                     sample.rotation = transform.rotation;
+                    
                     sample.leftPosition = LeftCamera.WorldToViewportPoint(this.latestSpawnedGameObject.transform.position);
+                    getWidthAndHeightInViewPort(sample.spawnedObject, LeftCamera, out sample.leftWidth, out sample.leftHeight);
+
                     sample.centerPosition = CenterCamera.WorldToViewportPoint(this.latestSpawnedGameObject.transform.position);
+                    getWidthAndHeightInViewPort(sample.spawnedObject, CenterCamera, out sample.centerWidth, out sample.centerHeight);
+
                     sample.rightPosition = RightCamera.WorldToViewportPoint(this.latestSpawnedGameObject.transform.position);
+                    getWidthAndHeightInViewPort(sample.spawnedObject, RightCamera, out sample.rightWidth, out sample.rightHeight);
 
                     carSamples.Enqueue(sample);
                 }
@@ -569,9 +638,14 @@ namespace UnityStandardAssets.Vehicles.Car
         public Vector3 position;
         public string timeStamp; 
         public Vector3 leftPosition;
+        public float leftWidth;
+        public float leftHeight;
         public Vector3 centerPosition;
+        public float centerWidth;
+        public float centerHeight;
         public Vector3 rightPosition;
-
+        public float rightWidth;
+        public float rightHeight;
         public GameObject spawnedObject;
     }
 }
