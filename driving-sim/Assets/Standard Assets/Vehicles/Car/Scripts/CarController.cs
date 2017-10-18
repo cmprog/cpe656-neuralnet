@@ -50,6 +50,10 @@ namespace UnityStandardAssets.Vehicles.Car
         [SerializeField] private Camera LeftCamera;
         [SerializeField] private Camera RightCamera;
 
+        private CameraViewportCalculator mCenterCameraViewportCalculator;
+        private CameraViewportCalculator mLeftCameraViewportCalculator;
+        private CameraViewportCalculator mRightCameraViewportCalculator;
+
         private Quaternion[] m_WheelMeshLocalRotations;
         private Vector3 m_Prevpos, m_Pos;
         private float m_SteerAngle;
@@ -138,6 +142,10 @@ namespace UnityStandardAssets.Vehicles.Car
         // Use this for initialization
         private void Start ()
         {
+            this.mLeftCameraViewportCalculator = new CameraViewportCalculator(this.LeftCamera);
+            this.mCenterCameraViewportCalculator = new CameraViewportCalculator(this.CenterCamera);
+            this.mRightCameraViewportCalculator = new CameraViewportCalculator(this.RightCamera);
+
             m_WheelMeshLocalRotations = new Quaternion[4];
             for (int i = 0; i < 4; i++) {
                 m_WheelMeshLocalRotations [i] = m_WheelMeshes [i].transform.localRotation;
@@ -417,11 +425,6 @@ namespace UnityStandardAssets.Vehicles.Car
             }
         }
 
-        private bool IsObjectOnScreen(Vector3 position)
-        {
-            return position.z > 0 && position.x < 1 && position.x > 0 && position.y < 1 && position.y > 0;
-        }
-
 		//Changed the WriteSamplesToDisk to a IEnumerator method that plays back recording along with percent status from UISystem script 
 		//instead of showing frozen screen until all data is recorded
 		public IEnumerator WriteSamplesToDisk()
@@ -450,23 +453,23 @@ namespace UnityStandardAssets.Vehicles.Car
 
 				string row = string.Format ("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},\n", 
                     leftPath,                                   //left image
-                    IsObjectOnScreen(sample.leftPosition),      //left detect
-                    sample.leftPosition.x,                      //left x
-                    sample.leftPosition.y,                      //left y
-                    sample.leftWidth,                           //left width
-                    sample.leftHeight,                          //left height
+                    sample.LeftBounds.IsInBounds,               //left detect
+                    sample.LeftBounds.X,                        //left x
+                    sample.LeftBounds.Y,                        //left y
+                    sample.LeftBounds.Width,                    //left width
+                    sample.LeftBounds.Height,                   //left height
                     centerPath,                                 //center image
-                    IsObjectOnScreen(sample.centerPosition),    //center detect
-                    sample.centerPosition.x,                    //center x
-                    sample.centerPosition.y,                    //center y
-                    sample.centerWidth,                         //center width
-                    sample.centerHeight,                        //center height
+				    sample.CenterBounds.IsInBounds,             //center detect
+                    sample.CenterBounds.X,                      //center x
+                    sample.CenterBounds.Y,                      //center y
+                    sample.CenterBounds.Width,                  //center width
+                    sample.CenterBounds.Height,                 //center height
                     rightPath,                                  //right image
-                    IsObjectOnScreen(sample.rightPosition),     //right detect
-                    sample.rightPosition.x,                     //right x
-                    sample.rightPosition.y,                     //right y
-                    sample.rightWidth,                          //right width
-                    sample.rightHeight                          //right height               
+				    sample.RightBounds.IsInBounds,              //right detect
+				    sample.RightBounds.X,                       //right x
+                    sample.RightBounds.Y,                       //right y
+                    sample.RightBounds.Width,                   //right width
+                    sample.RightBounds.Height                   //right height
                 );
 
 				File.AppendAllText (Path.Combine (m_saveLocation, CSVFileName), row);
@@ -500,70 +503,6 @@ namespace UnityStandardAssets.Vehicles.Car
 			return isSaving;
 		}
 
-        private List<Vector3> WorldToScreenPoints(Camera camera, List<Vector3> worldPoints)
-        {
-            List<Vector3> screenPoints = new List<Vector3>();
-
-            foreach (Vector3 worldPoint in worldPoints)
-            {
-                Vector3 screenPoint = camera.WorldToScreenPoint(worldPoint);
-                screenPoint.y = (float)Screen.height - screenPoint.y;
-                screenPoints.Add(screenPoint);
-            }
-
-            return screenPoints;
-        }
-
-        private Rect GetBoundingRect(Vector3 min, Vector3 max)
-        {
-            if (min.x < 0) min.x = 0;
-            if (min.y < 0) min.y = 0;
-            if (max.x > Screen.width) max.x = Screen.width;
-            if (max.y > Screen.height) max.y = Screen.height;
-
-            return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
-        }
-
-        private List<Vector3> GetVerticiesFromMesh(GameObject gameObject)
-        {
-            Mesh mesh = gameObject.GetComponent<MeshFilter>().mesh;
-            Vector3[] vertices = mesh.vertices;
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                vertices[i] = gameObject.transform.TransformPoint(vertices[i]);
-            }
-
-            return new List<Vector3>(vertices);
-        }
-
-        private void getWidthAndHeightInViewPort(GameObject gameObject, Camera camera, out float width, out float height)
-        {
-            List<Vector3> screenPoints = WorldToScreenPoints(camera, GetVerticiesFromMesh(gameObject));
-
-            //Calculate the min and max positions
-            Vector3 min = screenPoints[0];
-            Vector3 max = screenPoints[0];
-            foreach (Vector3 screenPoint in screenPoints)
-            {
-                min = Vector3.Min(min, screenPoint);
-                max = Vector3.Max(max, screenPoint);
-            }
-
-            //Construct a rect of the min and max positions
-            Rect rect = GetBoundingRect(min, max);
-
-            if (min.z > 0)
-            {
-                width = rect.width;
-                height = rect.height;
-            }
-            else
-            {
-                width = 0;
-                height = 0;
-            }
-        }
-
         public IEnumerator Sample()
         {
             // Start the Coroutine to Capture Data Every Second.
@@ -585,15 +524,10 @@ namespace UnityStandardAssets.Vehicles.Car
                     sample.timeStamp = System.DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss_fff");
                     sample.position = transform.position;
                     sample.rotation = transform.rotation;
-                    
-                    sample.leftPosition = LeftCamera.WorldToViewportPoint(this.latestSpawnedGameObject.transform.position);
-                    getWidthAndHeightInViewPort(sample.spawnedObject, LeftCamera, out sample.leftWidth, out sample.leftHeight);
 
-                    sample.centerPosition = CenterCamera.WorldToViewportPoint(this.latestSpawnedGameObject.transform.position);
-                    getWidthAndHeightInViewPort(sample.spawnedObject, CenterCamera, out sample.centerWidth, out sample.centerHeight);
-
-                    sample.rightPosition = RightCamera.WorldToViewportPoint(this.latestSpawnedGameObject.transform.position);
-                    getWidthAndHeightInViewPort(sample.spawnedObject, RightCamera, out sample.rightWidth, out sample.rightHeight);
+                    sample.LeftBounds = this.mLeftCameraViewportCalculator.GetBounds(this.latestSpawnedGameObject);
+                    sample.CenterBounds = this.mCenterCameraViewportCalculator.GetBounds(this.latestSpawnedGameObject);
+                    sample.RightBounds = this.mRightCameraViewportCalculator.GetBounds(this.latestSpawnedGameObject);
 
                     carSamples.Enqueue(sample);
                 }
@@ -636,16 +570,12 @@ namespace UnityStandardAssets.Vehicles.Car
     {
         public Quaternion rotation;
         public Vector3 position;
-        public string timeStamp; 
-        public Vector3 leftPosition;
-        public float leftWidth;
-        public float leftHeight;
-        public Vector3 centerPosition;
-        public float centerWidth;
-        public float centerHeight;
-        public Vector3 rightPosition;
-        public float rightWidth;
-        public float rightHeight;
+        public string timeStamp;
+
+        public CameraViewportBounds LeftBounds;
+        public CameraViewportBounds CenterBounds;
+        public CameraViewportBounds RightBounds;
+
         public GameObject spawnedObject;
     }
 }

@@ -1,10 +1,28 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using System.Collections;
 using SocketIO;
 using UnityStandardAssets.Vehicles.Car;
 using System;
-using System.Security.AccessControl;
+
+public sealed class TelemetryEventArgs : EventArgs
+{
+    public TelemetryEventArgs(byte[] image)
+    {
+        this.Image = image;
+    }
+
+    public byte[] Image { get; private set; }
+}
+
+public sealed class DetectionResponseEventArgs : EventArgs
+{
+    public DetectionResponseEventArgs(bool wasDetected)
+    {
+        this.WasDetected = wasDetected;
+    }
+
+    public bool WasDetected { get; private set; }
+}
 
 public class CommandServer : MonoBehaviour
 {
@@ -13,6 +31,13 @@ public class CommandServer : MonoBehaviour
     public UISystem UISystem;
 	private SocketIOComponent _socket;
 	private CarController _carController;
+
+    /// <summary>
+    /// Fired as a telementry message is being sent out.
+    /// </summary>
+    public event EventHandler<TelemetryEventArgs> TelemetrySending;
+
+    public event EventHandler<DetectionResponseEventArgs> DetectionResponse;
 
 	// Use this for initialization
 	void Start()
@@ -32,7 +57,6 @@ public class CommandServer : MonoBehaviour
 
 	void OnOpen(SocketIOEvent obj)
 	{
-		Debug.Log("Connection Open");
 		EmitTelemetry(obj);
 	}
 
@@ -47,8 +71,6 @@ public class CommandServer : MonoBehaviour
         var jsonObject = obj.data;
 
         const string lcHasDetectionFieldKey = "hasDetection";
-
-        Debug.LogFormat("OnDetect: {0}", obj);
 
         var hasDetectionJsonField = jsonObject.GetField(lcHasDetectionFieldKey);
         if (hasDetectionJsonField == null)
@@ -67,6 +89,13 @@ public class CommandServer : MonoBehaviour
         {
             var hasDetection = hasDetectionJsonField.b;
             this.UISystem.SetDetection(hasDetection);
+
+            var lDetectionResponseHandler = this.DetectionResponse;
+            if (lDetectionResponseHandler != null)
+            {
+                var lEventArgs = new DetectionResponseEventArgs(hasDetection);
+                lDetectionResponseHandler(this, lEventArgs);
+            }
         }
 
         EmitTelemetry(obj);
@@ -75,7 +104,6 @@ public class CommandServer : MonoBehaviour
     private void OnTrack(SocketIOEvent obj)
     {
         // Currently this method stub is a plceholder for once we get tracking working
-        Debug.LogFormat("OnTrack: {0}", obj);
         EmitTelemetry(obj);
     }
 
@@ -83,22 +111,25 @@ public class CommandServer : MonoBehaviour
 	{
 		UnityMainThreadDispatcher.Instance().Enqueue(() =>
 		{
-			print("Attempting to Send...");
-		    var telemetryData = this.CreateTelemetryData();
+            this.FrontFacingCamera.Render();
+		    var lImageData = CameraHelper.CaptureFrame(this.FrontFacingCamera);
+
+		    var lTelemetrySendingHandler = this.TelemetrySending;
+		    if (lTelemetrySendingHandler != null)
+		    {
+		        var lEventArgs = new TelemetryEventArgs(lImageData);
+		        lTelemetrySendingHandler(this, lEventArgs);
+		    }
+
+            var telemetryData = this.CreateTelemetryData(lImageData);
 		    this._socket.Emit("telemetry", telemetryData);
 		});
 	}
 
-    private JSONObject CreateTelemetryData()
+    private JSONObject CreateTelemetryData(byte[] imageData)
     {
-        // If manually steering is detected, then we don't send any meaningful data
-        if ((Input.GetKey(KeyCode.W)) || (Input.GetKey(KeyCode.S)))
-        {
-            return new JSONObject();
-        }
-
         var data = new Dictionary<string, string>();
-        data["image"] = Convert.ToBase64String(CameraHelper.CaptureFrame(FrontFacingCamera));
+        data["image"] = Convert.ToBase64String(imageData);
         return new JSONObject(data);
     }
 }

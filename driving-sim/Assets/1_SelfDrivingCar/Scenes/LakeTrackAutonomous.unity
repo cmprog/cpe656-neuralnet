@@ -590,6 +590,10 @@ Prefab:
       propertyPath: m_LocalPosition.z
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 11400002, guid: 0e7ee4df08df88c4880f43398f9ad2c2, type: 2}
+      propertyPath: CenterCamera
+      value: 
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 0e7ee4df08df88c4880f43398f9ad2c2, type: 2}
   m_IsPrefabParent: 0
@@ -953,6 +957,20 @@ MonoBehaviour:
   progressStyle: 0
   pointToPointThreshold: 4
   target: {fileID: 0}
+--- !u!114 &76698565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 76698560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd38c10185eb25648b5ce36615016156, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Camera: {fileID: 1506256752}
+  GameObjectSpawner: {fileID: 76698561}
+  CommandServer: {fileID: 1547983589}
 --- !u!1001 &85413186
 Prefab:
   m_ObjectHideFlags: 0
@@ -9618,6 +9636,12 @@ BoxCollider:
 Transform:
   m_PrefabParentObject: {fileID: 400000, guid: c92bea14e5c4591408be760558da7b90, type: 3}
   m_PrefabInternal: {fileID: 1532990424}
+--- !u!114 &1547983589 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114000011334794896, guid: 16328d84059a4491da82863ec16eb6a1,
+    type: 2}
+  m_PrefabInternal: {fileID: 2025785849}
+  m_Script: {fileID: 11500000, guid: 3a0227e09400f496f923b16e7d2d1fa3, type: 3}
 --- !u!1 &1549014051
 GameObject:
   m_ObjectHideFlags: 0
@@ -11543,6 +11567,11 @@ Prefab:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 114000013765185108, guid: 96664f82c8df0114a92fe864c83a9a48,
+        type: 2}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4000013583430504, guid: 96664f82c8df0114a92fe864c83a9a48, type: 2}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -11635,6 +11664,26 @@ Prefab:
       propertyPath: DetectStatus_Text
       value: 
       objectReference: {fileID: 15631939}
+    - target: {fileID: 114000013765185108, guid: 96664f82c8df0114a92fe864c83a9a48,
+        type: 2}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114000013765185108, guid: 96664f82c8df0114a92fe864c83a9a48,
+        type: 2}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 114000013506099906, guid: 96664f82c8df0114a92fe864c83a9a48,
+        type: 2}
+      propertyPath: autonomouseOutputGenerator
+      value: 
+      objectReference: {fileID: 76698565}
+    - target: {fileID: 114000013506099906, guid: 96664f82c8df0114a92fe864c83a9a48,
+        type: 2}
+      propertyPath: gameObjectSpawner
+      value: 
+      objectReference: {fileID: 76698561}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 96664f82c8df0114a92fe864c83a9a48, type: 2}
   m_IsPrefabParent: 0
@@ -12093,6 +12142,11 @@ Prefab:
       propertyPath: UISystem
       value: 
       objectReference: {fileID: 353232684}
+    - target: {fileID: 114000011334794896, guid: 16328d84059a4491da82863ec16eb6a1,
+        type: 2}
+      propertyPath: GameObjectSpawner
+      value: 
+      objectReference: {fileID: 76698561}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 16328d84059a4491da82863ec16eb6a1, type: 2}
   m_IsPrefabParent: 0

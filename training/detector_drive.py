@@ -87,7 +87,9 @@ def handleTelemetryDetection(image):
         #   [4] Convert to boolean
         send_detection((bool) ((int) (datetime.now().second / 10) % 2))
     else:
-        send_detection(bool(model.predict(image, batch_size=1)))
+        modelPrediction = model.predict(image, batch_size=1);
+        print('{}: {}'.format(datetime.now(), modelPrediction))
+        send_detection(bool(modelPrediction[0][0] > 0.5))
 
 def handleTelemetryTracking(image):
     if (isTesting):

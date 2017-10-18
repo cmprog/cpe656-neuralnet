@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
+using System.IO;
 using UnityStandardAssets.Vehicles.Car;
 using UnityEngine.SceneManagement;
 
@@ -8,6 +8,8 @@ public class UISystem : MonoSingleton<UISystem> {
 
     public CarController carController;
     public GameObjectSpawner gameObjectSpawner;
+    public AutonomousOutputGenerator autonomouseOutputGenerator;
+
     public string GoodCarStatusMessage;
     public string BadSCartatusMessage;
     public Text MPH_Text;
@@ -44,12 +46,6 @@ public class UISystem : MonoSingleton<UISystem> {
 		SaveStatus_Text.text = "";
 		SetAngleValue(0);
         SetMPHValue(0);
-
-		if (!isTraining) {
-			DriveStatus_Text.text = "Mode: Autonomous";
-			RecordDisabled.SetActive (true);
-			RecordStatus_Text.text = "";
-		} 
     }
 
     public void SetAngleValue(float value)
@@ -80,25 +76,44 @@ public class UISystem : MonoSingleton<UISystem> {
 
     public void ToggleRecording()
     {
-		// Don't record in autonomous mode
-		if (!isTraining) {
-			return;
-		}
-
-        if (!recording)
+        if (this.isTraining)
         {
-			if (carController.checkSaveLocation()) 
-			{
-				recording = true;
-				RecordingPause.SetActive (true);
-				RecordStatus_Text.text = "RECORDING";
-				carController.IsRecording = true;
-			}
+            if (!recording)
+            {
+                if (carController.checkSaveLocation())
+                {
+                    recording = true;
+                    RecordingPause.SetActive(true);
+                    RecordStatus_Text.text = "RECORDING";
+                    carController.IsRecording = true;
+                }
+            }
+            else
+            {
+                saveRecording = true;
+                carController.IsRecording = false;
+            }
         }
         else
         {
-			saveRecording = true;
-			carController.IsRecording = false;
+            if (this.autonomouseOutputGenerator.IsRecording)
+            {
+                this.RecordingPause.SetActive(false);
+                this.RecordStatus_Text.text = "RECORD";
+                this.autonomouseOutputGenerator.StopRecording();
+            }
+            else
+            {
+                SimpleFileBrowser.ShowSaveDialog(
+                    location =>
+                    {
+                        this.recording = true;
+                        this.RecordingPause.SetActive(true);
+                        this.RecordStatus_Text.text = "RECORDING";
+                        this.autonomouseOutputGenerator.StartRecording(new DirectoryInfo(location));
+                    },
+                    null, true, null, "Select Output File", "Select");
+            }
         }
     }
 
@@ -137,20 +152,6 @@ public class UISystem : MonoSingleton<UISystem> {
         {
             ToggleRecording();
         }
-
-		if (!isTraining) 
-		{
-			if ((Input.GetKey(KeyCode.W)) || (Input.GetKey(KeyCode.S))) 
-			{
-				DriveStatus_Text.color = Color.red;
-				DriveStatus_Text.text = "Mode: Manual";
-			} 
-			else 
-			{
-				DriveStatus_Text.color = Color.white;
-				DriveStatus_Text.text = "Mode: Autonomous";
-			}
-		}
 
 	    if(Input.GetKeyDown(KeyCode.Escape))
         {
