@@ -101,8 +101,8 @@ def handleTelemetryTracking(image):
         # will work as I'm expecting it to...
         prediction = model.predict(image, batch_size=1)
         send_track(
-            double(prediction[0]), double(prediction[1]),
-            double(prediction[2]), double(prediction[3]))
+            float(prediction[0][0]), float(prediction[0][1]),
+            float(prediction[0][2]), float(prediction[0][3]))
 
 @sio.on('connect')
 def connect(sid, environ):
