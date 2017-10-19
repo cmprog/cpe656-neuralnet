@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
+using System.Threading;
 using UnityStandardAssets.Vehicles.Car;
 using UnityEngine.SceneManagement;
 
@@ -21,7 +22,11 @@ public class UISystem : MonoSingleton<UISystem> {
     public Text DetectStatus_Text;
     public GameObject RecordingPause; 
 	public GameObject RecordDisabled;
-	public bool isTraining = false;
+    public bool isTraining = false;
+
+    public Texture BoundingBoxTexture;
+    private Rect mBoundingBoxBounds;
+    private bool mDrawBouningBox;
 
     private bool recording;
     private float topSpeed;
@@ -71,6 +76,32 @@ public class UISystem : MonoSingleton<UISystem> {
         {
             this.DetectStatus_Text.text = this.NoDetectionMessage;
             this.DetectStatus_Text.color = Color.red;
+        }
+    }
+
+    public void SetBoundingBox(Camera referenceCamera, Rect bounds)
+    {
+        if ((bounds.width <= 0.0) || (bounds.height <= 0.0) ||
+            (0.0 >= bounds.x) || (bounds.x >= 1.0) ||
+            (0.0 >= bounds.y) || (bounds.y >= 1.0))
+        {
+            this.mDrawBouningBox = false;
+            return;
+        }
+
+        this.mDrawBouningBox = true;
+        var lScreenPosition = referenceCamera.ViewportToScreenPoint(bounds.position);
+        this.mBoundingBoxBounds.position = new Vector2(lScreenPosition.x, lScreenPosition.y + referenceCamera.pixelHeight);
+        this.mBoundingBoxBounds.size = bounds.size;
+    }
+
+    void OnGUI()
+    {
+        if (this.mDrawBouningBox)
+        {
+            GUI.DrawTexture(
+                this.mBoundingBoxBounds, this.BoundingBoxTexture, 
+                ScaleMode.StretchToFill, false, 0, Color.green, 0, 0);
         }
     }
 

@@ -64,6 +64,11 @@ public class AutonomousOutputGenerator : MonoBehaviour
     public void StopRecording()
     {
         this.IsRecording = false;
-        this.mWriter.Dispose();
+
+        if (this.mWriter != null)
+        {
+            this.mWriter.Dispose();
+            this.mWriter = null;
+        }
     }
 }

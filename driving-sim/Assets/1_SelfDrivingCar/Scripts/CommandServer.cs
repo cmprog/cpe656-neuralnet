@@ -28,6 +28,7 @@ public class CommandServer : MonoBehaviour
 {
 	public CarRemoteControl CarRemoteControl;
 	public Camera FrontFacingCamera;
+    public Camera OnScreenCamera;
     public UISystem UISystem;
 	private SocketIOComponent _socket;
 	private CarController _carController;
@@ -104,7 +105,47 @@ public class CommandServer : MonoBehaviour
     private void OnTrack(SocketIOEvent obj)
     {
         // Currently this method stub is a plceholder for once we get tracking working
+        
+        float lPositionX;
+        float lPositionY;
+        float lSizeWidth;
+        float lSizeHeight;
+
+        var lData = obj.data;
+
+        if (this.TryExtractSingle(lData, "positionX", out lPositionX) &&
+            this.TryExtractSingle(lData, "positionX", out lPositionY) &&
+            this.TryExtractSingle(lData, "sizeWidth", out lSizeWidth) &&
+            this.TryExtractSingle(lData, "sizeHeight", out lSizeHeight))
+        {
+            var lBounds = new Rect(lPositionX, lPositionY, lSizeWidth, lSizeHeight);
+            this.UISystem.SetBoundingBox(this.OnScreenCamera, lBounds);
+        }
+
         EmitTelemetry(obj);
+    }
+
+    private bool TryExtractSingle(JSONObject data, string key, out float value)
+    {
+        var lField = data.GetField(key);
+        if (lField == null)
+        {
+            Debug.LogWarning(string.Format(
+                "Expecting JSON field named \"{0}\" but field was not found.", key));
+            value = 0.0f;
+            return false;
+        }
+
+        if (!lField.IsNumber)
+        {
+            Debug.LogWarning(string.Format(
+                "Expecting JSON field named \"{0}\" to be a boolean but found a {1}.", key, lField.type));
+            value = 0.0f;
+            return false;
+        }
+
+        value = lField.f;
+        return true;
     }
 
 	void EmitTelemetry(SocketIOEvent obj)

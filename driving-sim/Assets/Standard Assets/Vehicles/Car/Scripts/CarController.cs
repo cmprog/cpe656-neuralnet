@@ -451,7 +451,7 @@ namespace UnityStandardAssets.Vehicles.Car
 				string leftPath = WriteImage (LeftCamera, "left", sample.timeStamp);
 				string rightPath = WriteImage (RightCamera, "right", sample.timeStamp);
 
-				string row = string.Format ("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},\n", 
+                string row = string.Format ("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17}\n", 
                     leftPath,                                   //left image
                     sample.LeftBounds.IsInBounds,               //left detect
                     sample.LeftBounds.X,                        //left x
@@ -559,10 +559,13 @@ namespace UnityStandardAssets.Vehicles.Car
             byte[] image = texture2D.EncodeToJPG ();
             UnityEngine.Object.DestroyImmediate (texture2D);
             string directory = Path.Combine(m_saveLocation, DirFrames);
-            string path = Path.Combine(directory, prepend + "_" + timestamp + ".jpg");
+            string fileName = prepend + "_" + timestamp + ".jpg";
+            string path = Path.Combine(directory, fileName);
             File.WriteAllBytes (path, image);
             image = null;
-            return path;
+
+            // For whatever reason, unit doesn't reconice the overload that takes 3 parameters.
+            return Path.Combine(".", Path.Combine(DirFrames, fileName));
         }
     }
 

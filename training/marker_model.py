@@ -45,9 +45,6 @@ def load_data(args):
         data_df[['l_x', 'l_y', 'l_width', 'l_height']].values, \
         data_df[['r_x', 'r_y', 'r_width', 'r_height']].values))
         
-    print(len(x))
-    print(len(y))
-
     #now we can split the data into a training (80), testing(20), and validation set
     #thanks scikit learn
     x_train, x_valid, y_train, y_valid = train_test_split(x, y, test_size=args.test_size, random_state=0)
@@ -130,8 +127,8 @@ def train_model(model, args, x_train, x_valid, y_train, y_valid):
     #For instance, this allows you to do real-time data augmentation on images on CPU in
     #parallel to training your model on GPU.
     #so we reshape our data into their appropriate batches and train our model simulatenously
-    t_data = batch_generator("", x_train, y_train, args.batch_size, True, args.is_unix)
-    v_data = batch_generator("", x_valid, y_valid, args.batch_size, True, args.is_unix)
+    t_data = batch_generator(args.data_dir, x_train, y_train, args.batch_size, True, args.is_unix)
+    v_data = batch_generator(args.data_dir, x_valid, y_valid, args.batch_size, True, args.is_unix)
     
     model.fit_generator(t_data,
                         args.samples_per_epoch,
