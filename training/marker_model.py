@@ -11,11 +11,11 @@ from keras.callbacks import ModelCheckpoint
 #what types of layers do we want our model to have?
 from keras.layers import Lambda, Activation, Conv2D, MaxPooling2D, Dropout, Dense, Flatten
 #helper class to define input shape and generate training images given image paths & steering angles
-from utils import INPUT_SHAPE, batch_generator
+from utils import INPUT_SHAPE,IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS, cv2_load_image
 #for command line arguments
 import argparse
 #for reading files
-import os
+import os, math
 
 #for debugging, allows for reproducible (deterministic) results
 np.random.seed(0)
@@ -74,24 +74,26 @@ def build_model(args):
     """
     model = Sequential([
         Lambda(lambda x: x/127.5-1.0, input_shape=INPUT_SHAPE),
+        # Flatten(),
+        # Activation('relu'),
+        # Dropout(0.2),
+        # Dense(4)
+        
+        # Original Steering Model
+        Conv2D(24, 5, 5, activation='elu', subsample=(2, 2)),
+        Conv2D(36, 5, 5, activation='elu', subsample=(2, 2)),
+        Conv2D(48, 5, 5, activation='elu', subsample=(2, 2)),
+        Conv2D(64, 3, 3, activation='elu'),
+        Conv2D(64, 3, 3, activation='elu'),
+        Dropout(args.keep_prob),
         Flatten(),
-        Activation('relu'),
-        Dropout(0.2),
+        Dense(100, activation='elu'),
+        Dense(50, activation='elu'),
+        Dense(10, activation='elu'),
         Dense(4)
-    ])
-    # model.add(Lambda(lambda x: x/127.5-1.0, input_shape=INPUT_SHAPE))
-    # model.add(Conv2D(24, 5, 5, activation='elu', subsample=(2, 2)))
-    # model.add(Conv2D(36, 5, 5, activation='elu', subsample=(2, 2)))
-    # model.add(Conv2D(48, 5, 5, activation='elu', subsample=(2, 2)))
-    # model.add(Conv2D(64, 3, 3, activation='elu'))
-    # model.add(Conv2D(64, 3, 3, activation='elu'))
-    # model.add(Dropout(args.keep_prob))
-    # model.add(Flatten())
-    # model.add(Dense(100, activation='elu'))
-    # model.add(Dense(50, activation='elu'))
-    # model.add(Dense(10, activation='elu'))
-    # model.add(Dense(1))
-    model.summary()
+      ]);
+      
+    model.summary();
 
     return model
 
@@ -127,8 +129,8 @@ def train_model(model, args, x_train, x_valid, y_train, y_valid):
     #For instance, this allows you to do real-time data augmentation on images on CPU in
     #parallel to training your model on GPU.
     #so we reshape our data into their appropriate batches and train our model simulatenously
-    t_data = batch_generator(args.data_dir, x_train, y_train, args.batch_size, True, args.is_unix)
-    v_data = batch_generator(args.data_dir, x_valid, y_valid, args.batch_size, True, args.is_unix)
+    t_data = marking_batch_generator(args.data_dir, x_train, y_train, args.batch_size, True, args.is_unix)
+    v_data = marking_batch_generator(args.data_dir, x_valid, y_valid, args.batch_size, True, args.is_unix)
     
     model.fit_generator(t_data,
                         args.samples_per_epoch,
@@ -138,7 +140,57 @@ def train_model(model, args, x_train, x_valid, y_train, y_valid):
                         nb_val_samples=len(x_valid),
                         callbacks=[checkpoint],
                         verbose=1)
-
+                       
+def marking_preprocess(sourceImage, rawBounds):
+    """
+    Remove everything from the image that isn't in the bounding box.
+    """
+    # this feels backwards, but it is stored (y, x, z) not (x, y, z)
+    sourceWidth = sourceImage.shape[1]
+    sourceHeight = sourceImage.shape[0]
+    
+    # the raw bounds position represents the center of the object and is defined
+    # such that (0,0) is the lower-left corner and (1,1) is the top-right. cv2 and np
+    # orient (0,0) as the top-left and (1,1) as the bottom-right
+    targetBounds = (
+        int((rawBounds[0] * sourceWidth) - (rawBounds[2] / 2.0)),
+        int(sourceHeight - (rawBounds[1] * sourceHeight) - (rawBounds[3] / 2.0)),
+        int(math.ceil(rawBounds[2])),
+        int(math.ceil(rawBounds[3]))
+    )
+    
+    # create a new image with same dimensions, all white (255 all channels)
+    targetImage = np.full(sourceImage.shape, 255, sourceImage.dtype)
+    
+    # copy just the target bounds from the source to the target, keeping in mind
+    # that the first dimension is y/height and the second dimension is x/width
+    targetImage[targetBounds[1]:(targetBounds[1] + targetBounds[3]), targetBounds[0]:(targetBounds[0] + targetBounds[2])] = \
+        sourceImage[targetBounds[1]:(targetBounds[1] + targetBounds[3]), targetBounds[0]:(targetBounds[0] + targetBounds[2])]
+        
+    return targetImage
+                        
+def marking_batch_generator(data_dir, image_paths, bounding_rects, batch_size, is_training, is_unix):
+    """
+    Generate training image give image paths and associated steering angles
+    """
+    # batch_size = len(image_paths)
+    images = np.empty([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS])
+    steers = np.empty(batch_size)
+    while True:
+        i = 0
+        for index in np.random.permutation(image_paths.shape[0]):
+            if is_unix:
+                image_path = flip_slashes(image_paths[index])
+            else:
+                image_path = image_paths[index]
+            bounding_rect = bounding_rects[index]
+            image = cv2_load_image(data_dir, image_path)
+            images[i] = marking_preprocess(image, bounding_rect)            
+            i += 1
+            if i == batch_size:
+                break
+        yield images, bounding_rects[:batch_size]
+                        
 #for command line args
 def s2b(s):
     """
