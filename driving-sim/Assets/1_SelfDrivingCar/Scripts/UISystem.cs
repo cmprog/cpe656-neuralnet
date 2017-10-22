@@ -79,11 +79,22 @@ public class UISystem : MonoSingleton<UISystem> {
         }
     }
 
+    private bool IsWithinViewport(Rect bounds)
+    {
+        if ((bounds.width <= 0.0f) || (bounds.height <= 0.0f)) return false;
+
+        if (bounds.xMax <= 0.0f) return false;
+        if (bounds.xMin >= 1.0f) return false;
+
+        if (bounds.yMax <= 0.0f) return false;
+        if (bounds.yMin >= 1.0f) return false;
+
+        return true;
+    }
+
     public void SetBoundingBox(Camera referenceCamera, Rect bounds)
     {
-        if ((bounds.width <= 0.0) || (bounds.height <= 0.0) ||
-            (0.0 >= bounds.x) || (bounds.x >= 1.0) ||
-            (0.0 >= bounds.y) || (bounds.y >= 1.0))
+        if (!this.IsWithinViewport(bounds))
         {
             this.mDrawBouningBox = false;
             return;

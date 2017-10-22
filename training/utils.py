@@ -21,6 +21,12 @@ def load_image(data_dir, image_file):
     Load RGB images from a file
     """
     return mpimg.imread(os.path.join(data_dir, image_file.strip()))
+    
+def cv2_load_image(data_dir, image_file):
+    """
+    Load RGB images from a file
+    """
+    return cv2.imread(os.path.join(data_dir, image_file.strip()))
 
 
 def crop(image):

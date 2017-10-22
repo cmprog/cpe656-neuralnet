@@ -637,7 +637,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnableGameObjectGroups:
-  - enabled: 1
+  - enabled: 0
     candidateGameObjects:
     - gameObject: {fileID: 1492099340755448, guid: 86c20d09a275bb84b9c49b20107a4a90,
         type: 2}
@@ -671,7 +671,7 @@ MonoBehaviour:
         lockXYRatio: 0
         lockXZRatio: 0
         lockYZRatio: 0
-  - enabled: 0
+  - enabled: 1
     candidateGameObjects:
     - gameObject: {fileID: 1414094671245272, guid: c9d6c577125875d4b80135f7a57f132e,
         type: 2}
