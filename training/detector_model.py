@@ -10,6 +10,8 @@ from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint
 #what types of layers do we want our model to have?
 from keras.layers import Lambda, Conv2D, MaxPooling2D, Dropout, Dense, Flatten
+#used to setup as categorical outputs
+from keras.utils import np_utils
 #helper class to define input shape and generate training images given image paths & steering angles
 from utils import INPUT_SHAPE, batch_generator
 #for command line arguments
@@ -43,11 +45,12 @@ def load_data(args):
     y_center = data_df['c_detect']
     y_left = data_df['l_detect']
     y_right = data_df['r_detect']
-    y = pd.concat([y_center, y_left, y_right]).values
+    y = pd.concat([y_center, y_left, y_right]).values.astype(int)
 
     #now we can split the data into a training (80), testing(20), and validation set
     #thanks scikit learn
     x_train, x_valid, y_train, y_valid = train_test_split(x, y, test_size=args.test_size, random_state=0)
+
 
     return x_train, x_valid, y_train, y_valid
 
@@ -84,8 +87,12 @@ def build_model(args):
     model.add(Dense(100, activation='elu'))
     model.add(Dense(50, activation='elu'))
     model.add(Dense(10, activation='elu'))
-    model.add(Dense(1))
+    model.add(Dense(1, activation='softmax'))
     model.summary()
+
+    #   File "C:\Users\zsmit\.conda\envs\pothole_detector\lib\site-packages\keras\backend\tensorflow_backend.py", line 2008, in binary_crossentropy
+    # CHANGE: return tf.nn.sigmoid_cross_entropy_with_logits(output, target)
+    # to:  return tf.nn.sigmoid_cross_entropy_with_logits(logits=output, labels=target)
 
     return model
 
@@ -113,7 +120,7 @@ def train_model(model, args, x_train, x_valid, y_train, y_valid):
     #divide by the number of them
     #that value is our mean squared error! this is what we want to minimize via
     #gradient descent
-    model.compile(loss='mean_squared_error', optimizer=Adam(lr=args.learning_rate))
+    model.compile(loss='binary_crossentropy', optimizer=Adam(lr=args.learning_rate), metrics=['accuracy'])
 
     #Fits the model on data generated batch-by-batch by a Python generator.
 
@@ -167,6 +174,7 @@ def main():
 
     #load data
     data = load_data(args)
+    #print(data)
     #build model
     model = build_model(args)
     #train model on data, it saves as model.h5
