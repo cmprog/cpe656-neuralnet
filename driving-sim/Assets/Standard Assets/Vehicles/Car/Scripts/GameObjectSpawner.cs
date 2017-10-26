@@ -36,6 +36,11 @@ namespace UnityStandardAssets.Vehicles.Car
         {
             if (!Input.GetKeyDown(KeyCode.LeftShift)) return;
 
+            SpawnGameObject();
+        }
+
+        public void SpawnGameObject()
+        {
             var spawnableGameObject = this.NextSpawnableGameObject();
             if (spawnableGameObject == null) return;
 
