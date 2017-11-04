@@ -11,6 +11,7 @@ from keras.callbacks import ModelCheckpoint
 #what types of layers do we want our model to have?
 from keras.layers import Lambda, Conv2D, MaxPooling2D, Dropout, Dense, Flatten
 #used to setup as categorical outputs
+from keras.constraints import maxnorm
 from keras.utils import np_utils
 #helper class to define input shape and generate training images given image paths & steering angles
 from utils import INPUT_SHAPE, batch_generator
@@ -93,12 +94,12 @@ def build_model(args):
     # https://machinelearningmastery.com/object-recognition-convolutional-neural-networks-keras-deep-learning-library/
     model = Sequential()
     model.add(Lambda(lambda x: x/127.5-1.0, input_shape=INPUT_SHAPE))
-    model.add(Conv2D(32, (3, 3), input_shape=(3, 32, 32), padding='same', activation='relu', kernel_constraint=maxnorm(3)))
+    model.add(Conv2D(32, 3, 3, input_shape=(3, 32, 32), activation='relu'))
     model.add(Dropout(0.2))
-    model.add(Conv2D(32, (3, 3), activation='relu', padding='same', kernel_constraint=maxnorm(3)))
+    model.add(Conv2D(32, 3, 3, activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Flatten())
-    model.add(Dense(512, activation='relu', kernel_constraint=maxnorm(3)))
+    model.add(Dense(512, activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(1, activation='softmax'))
 
